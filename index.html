@@ -9,17 +9,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f4f4f4;
-            text-align: center;
-        }
         .weather-info {
             display: none;
             margin-top: 20px;
             padding: 15px;
             border-radius: 8px;
-            background: #333;
+            background: #1d1d1d;
             color: #fff;
             box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
             text-align: center;
@@ -34,6 +29,8 @@
             height: 300px;
             margin-top: 20px;
             display: none;
+            background: #000;
+            color: #fff;
         }
         .popup {
             display: none;
@@ -41,7 +38,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #444;
+            background: #2d2d2d;
             color: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -52,7 +49,7 @@
         .popup button {
             margin-top: 10px;
             padding: 8px 15px;
-            background: #bc69ff;
+            background: rgb(188, 105, 255);
             color: white;
             border: none;
             cursor: pointer;
@@ -61,10 +58,20 @@
 </head>
 <body>
     <header>
-        <h1>Weather App</h1>
+        <nav class="main-nav">
+            <div class="logo">
+                <h1><a href="/">Weather<span class="accent-text">App</span></a></h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">HOME</a></li>
+                <li><a href="#forecast">FORECAST</a></li>
+                <li><a href="#contact" onclick="showPopup(event)">CONTACT</a></li>
+            </ul>
+        </nav>
     </header>
+    
     <main>
-        <section>
+        <section id="weather" class="form-section">
             <h2>Check the Weather</h2>
             <input type="text" id="location" placeholder="Enter Location" />
             <button onclick="getWeather()">Get Weather</button>
@@ -72,49 +79,68 @@
             <div id="map"></div>
         </section>
     </main>
+    
     <div class="popup" id="contactPopup">
         <h2>Contact Information</h2>
         <p>Email: g.mahidharreddyoo3@gmail.com</p>
         <p>Phone: 9347783826</p>
         <button onclick="closePopup()">Close</button>
     </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>WeatherApp</h3>
+                <p>Your go-to source for weather updates</p>
+            </div>
+            <div class="footer-links">
+                <p>&copy; 2025 WeatherApp - All Rights Reserved</p>
+                <nav>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of Service</a>
+                    <a href="#contact" onclick="showPopup(event)">Contact Us</a>
+                </nav>
+            </div>
+        </div>
+    </footer>
+
     <script>
         async function getWeather() {
-            const location = document.getElementById('location').value.trim();
+            const location = document.getElementById('location').value;
             if (!location) {
                 alert('Please enter a location');
                 return;
             }
             const apiKey = '52a3335680494d8c8b9125854252903';
-            const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(location)}&aqi=yes`;
+            const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`;
+            
             try {
                 const response = await fetch(url);
                 const data = await response.json();
                 if (data.error) {
-                    document.getElementById('weather-result').innerHTML = '<p>Location not found. Try again.</p>';
-                    document.getElementById('weather-result').style.display = 'block';
+                    document.getElementById('weather-result').innerText = 'Location not found';
+                    document.getElementById('weather-result').style.display = 'none';
                     document.getElementById('map').style.display = 'none';
-                    return;
+                } else {
+                    const conditionIcon = data.current.condition.icon;
+                    document.getElementById('weather-result').innerHTML = `
+                        <img class="weather-icon" src="https:${conditionIcon}" alt="Weather Icon">
+                        <p><strong>Location:</strong> ${data.location.name}, ${data.location.region}, ${data.location.country}</p>
+                        <p><strong>Temperature:</strong> ${data.current.temp_c}°C</p>
+                        <p><strong>Condition:</strong> ${data.current.condition.text}</p>
+                        <p><strong>Humidity:</strong> ${data.current.humidity}%</p>
+                        <p><strong>Wind Speed:</strong> ${data.current.wind_kph} kph</p>
+                    `;
+                    document.getElementById('weather-result').style.display = 'block';
+                    showMap(data.location.lat, data.location.lon, data.current.condition.text);
                 }
-                displayWeather(data);
-                showMap(data.location.lat, data.location.lon, data.current.condition.text);
             } catch (error) {
-                document.getElementById('weather-result').innerHTML = '<p>Error fetching data. Please try again.</p>';
-                document.getElementById('weather-result').style.display = 'block';
+                document.getElementById('weather-result').innerText = 'Error fetching data';
+                document.getElementById('weather-result').style.display = 'none';
                 document.getElementById('map').style.display = 'none';
             }
         }
-        function displayWeather(data) {
-            document.getElementById('weather-result').innerHTML = `
-                <img class="weather-icon" src="https:${data.current.condition.icon}" alt="Weather Icon">
-                <p><strong>Location:</strong> ${data.location.name}, ${data.location.region}, ${data.location.country}</p>
-                <p><strong>Temperature:</strong> ${data.current.temp_c}°C</p>
-                <p><strong>Condition:</strong> ${data.current.condition.text}</p>
-                <p><strong>Humidity:</strong> ${data.current.humidity}%</p>
-                <p><strong>Wind Speed:</strong> ${data.current.wind_kph} kph</p>
-            `;
-            document.getElementById('weather-result').style.display = 'block';
-        }
+
         function showMap(lat, lon, condition) {
             document.getElementById('map').style.display = 'block';
             document.getElementById('map').innerHTML = "";
@@ -126,7 +152,9 @@
                 .bindPopup(`Weather Condition: ${condition}`)
                 .openPopup();
         }
-        function showPopup() {
+        
+        function showPopup(event) {
+            event.preventDefault();
             document.getElementById('contactPopup').style.display = 'block';
         }
         function closePopup() {
