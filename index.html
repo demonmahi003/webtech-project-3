@@ -105,8 +105,10 @@
     </footer>
 
     <script>
+        let map; // Global map instance
+
         async function getWeather() {
-            const location = document.getElementById('location').value;
+            const location = document.getElementById('location').value.trim();
             if (!location) {
                 alert('Please enter a location');
                 return;
@@ -117,14 +119,14 @@
             try {
                 const response = await fetch(url);
                 const data = await response.json();
+                
                 if (data.error) {
                     document.getElementById('weather-result').innerText = 'Location not found';
-                    document.getElementById('weather-result').style.display = 'none';
+                    document.getElementById('weather-result').style.display = 'block';
                     document.getElementById('map').style.display = 'none';
                 } else {
-                    const conditionIcon = data.current.condition.icon;
                     document.getElementById('weather-result').innerHTML = `
-                        <img class="weather-icon" src="https:${conditionIcon}" alt="Weather Icon">
+                        <img class="weather-icon" src="https:${data.current.condition.icon}" alt="Weather Icon">
                         <p><strong>Location:</strong> ${data.location.name}, ${data.location.region}, ${data.location.country}</p>
                         <p><strong>Temperature:</strong> ${data.current.temp_c}°C</p>
                         <p><strong>Condition:</strong> ${data.current.condition.text}</p>
@@ -136,19 +138,28 @@
                 }
             } catch (error) {
                 document.getElementById('weather-result').innerText = 'Error fetching data';
-                document.getElementById('weather-result').style.display = 'none';
+                document.getElementById('weather-result').style.display = 'block';
                 document.getElementById('map').style.display = 'none';
             }
         }
 
         function showMap(lat, lon, condition) {
             document.getElementById('map').style.display = 'block';
-            document.getElementById('map').innerHTML = "";
-            const map = L.map('map').setView([lat, lon], 10);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-            L.marker([lat, lon]).addTo(map)
+
+            if (!map) {
+                map = L.map('map').setView([lat, lon], 10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+            } else {
+                map.setView([lat, lon], 10);
+            }
+
+            if (map.hasLayer(map.marker)) {
+                map.removeLayer(map.marker);
+            }
+
+            map.marker = L.marker([lat, lon]).addTo(map)
                 .bindPopup(`Weather Condition: ${condition}`)
                 .openPopup();
         }
