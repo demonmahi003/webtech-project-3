@@ -9,6 +9,55 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #121212;
+            color: #fff;
+            text-align: center;
+        }
+        .main-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: #1d1d1d;
+        }
+        .logo a {
+            text-decoration: none;
+            color: #fff;
+            font-size: 24px;
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #fff;
+            font-weight: 500;
+        }
+        .form-section {
+            padding: 20px;
+        }
+        input[type="text"] {
+            width: 80%;
+            max-width: 300px;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background: rgb(188, 105, 255);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
         .weather-info {
             display: none;
             margin-top: 20px;
@@ -29,8 +78,6 @@
             height: 300px;
             margin-top: 20px;
             display: none;
-            background: #000;
-            color: #fff;
         }
         .popup {
             display: none;
@@ -39,20 +86,34 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: #2d2d2d;
-            color: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
             z-index: 1000;
             text-align: center;
         }
         .popup button {
             margin-top: 10px;
-            padding: 8px 15px;
-            background: rgb(188, 105, 255);
-            color: white;
-            border: none;
-            cursor: pointer;
+        }
+        .footer-content {
+            padding: 20px;
+            text-align: center;
+            background: #1d1d1d;
+        }
+        @media (max-width: 600px) {
+            .main-nav {
+                flex-direction: column;
+                text-align: center;
+            }
+            .nav-links {
+                flex-direction: column;
+                padding: 0;
+            }
+            input[type="text"], button {
+                width: 100%;
+            }
+            #map {
+                height: 200px;
+            }
         }
     </style>
 </head>
@@ -80,33 +141,14 @@
         </section>
     </main>
     
-    <div class="popup" id="contactPopup">
-        <h2>Contact Information</h2>
-        <p>Email: g.mahidharreddyoo3@gmail.com</p>
-        <p>Phone: 9347783826</p>
-        <button onclick="closePopup()">Close</button>
-    </div>
-    
     <footer>
         <div class="footer-content">
-            <div class="footer-brand">
-                <h3>WeatherApp</h3>
-                <p>Your go-to source for weather updates</p>
-            </div>
-            <div class="footer-links">
-                <p>&copy; 2025 WeatherApp - All Rights Reserved</p>
-                <nav>
-                    <a href="/privacy">Privacy Policy</a>
-                    <a href="/terms">Terms of Service</a>
-                    <a href="#contact" onclick="showPopup(event)">Contact Us</a>
-                </nav>
-            </div>
+            <p>&copy; 2025 WeatherApp - All Rights Reserved</p>
         </div>
     </footer>
-
+    
     <script>
-        let map; // Global map instance
-
+        let map;
         async function getWeather() {
             const location = document.getElementById('location').value.trim();
             if (!location) {
@@ -127,49 +169,24 @@
                 } else {
                     document.getElementById('weather-result').innerHTML = `
                         <img class="weather-icon" src="https:${data.current.condition.icon}" alt="Weather Icon">
-                        <p><strong>Location:</strong> ${data.location.name}, ${data.location.region}, ${data.location.country}</p>
                         <p><strong>Temperature:</strong> ${data.current.temp_c}°C</p>
                         <p><strong>Condition:</strong> ${data.current.condition.text}</p>
-                        <p><strong>Humidity:</strong> ${data.current.humidity}%</p>
-                        <p><strong>Wind Speed:</strong> ${data.current.wind_kph} kph</p>
                     `;
                     document.getElementById('weather-result').style.display = 'block';
-                    showMap(data.location.lat, data.location.lon, data.current.condition.text);
+                    showMap(data.location.lat, data.location.lon);
                 }
             } catch (error) {
                 document.getElementById('weather-result').innerText = 'Error fetching data';
-                document.getElementById('weather-result').style.display = 'block';
-                document.getElementById('map').style.display = 'none';
             }
         }
-
-        function showMap(lat, lon, condition) {
+        function showMap(lat, lon) {
             document.getElementById('map').style.display = 'block';
-
             if (!map) {
                 map = L.map('map').setView([lat, lon], 10);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             } else {
                 map.setView([lat, lon], 10);
             }
-
-            if (map.hasLayer(map.marker)) {
-                map.removeLayer(map.marker);
-            }
-
-            map.marker = L.marker([lat, lon]).addTo(map)
-                .bindPopup(`Weather Condition: ${condition}`)
-                .openPopup();
-        }
-        
-        function showPopup(event) {
-            event.preventDefault();
-            document.getElementById('contactPopup').style.display = 'block';
-        }
-        function closePopup() {
-            document.getElementById('contactPopup').style.display = 'none';
         }
     </script>
 </body>
