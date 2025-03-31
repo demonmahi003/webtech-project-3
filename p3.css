@@ -42,6 +42,10 @@ header {
     max-width: 1400px;
     margin: 0 auto;
 }
+a{
+    list-style-type: none;
+    color: var(--text-primary);
+}
 
 .logo a {
     color: var(--text-primary);
